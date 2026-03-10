@@ -1,4 +1,7 @@
 
+-- Database: Classicmodels
+
+
 /* 1.0 Introduction to Store Procedure  */
 
 -- call the get customer details
