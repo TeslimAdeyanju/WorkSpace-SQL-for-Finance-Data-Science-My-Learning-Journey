@@ -1,0 +1,43 @@
+-- Databse: classicmodel
+-- Model: Mysql 
+
+-- Example 1
+WITH topsales2003 AS (
+    SELECT 
+        salesRepEmployeeNumber AS employeeNumber,
+        SUM(quantityOrdered * priceEach) AS sales
+    FROM
+        orders
+            INNER JOIN
+        orderdetails USING (orderNumber)
+            INNER JOIN
+        customers USING (customerNumber)
+    WHERE
+        YEAR(shippedDate) = 2003
+            AND status = 'Shipped'
+    GROUP BY salesRepEmployeeNumber
+    ORDER BY sales DESC
+    LIMIT 5)
+    
+
+SELECT 
+   employee_selection.employeeNumber, 
+   employee_selection.firstName, 
+   employee_selection.lastName, 
+   top_sales_list.sales
+FROM
+    employees as employee_selection
+JOIN
+    topsales2003 as top_sales_list 
+    ON 
+    employee_selection.employeeNumber = top_sales_list.employeeNumber;
+    
+  
+  
+-- Example 2
+
+    
+    
+    
+    
+    
