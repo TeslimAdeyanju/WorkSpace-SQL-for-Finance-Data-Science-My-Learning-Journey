@@ -47,10 +47,37 @@ HAVING
                     customer_id) AS customer_payments)
 
 
-
-
-
 -- Example 1.3: > with SUM()
+-- Business Scenario: "Find films that have generated more total revenue than the average film's total revenue"
+
+
+
+
+
+
+
+
+SELECT 
+    ROUND(AVG(film_revenue), 2) 
+FROM 
+    (   SELECT 
+            SUM(p2.amount) AS film_revenue
+        FROM 
+            sakila.film AS f2
+        JOIN 
+            sakila.inventory AS i2 
+        USING 
+            (film_id)
+        JOIN 
+            sakila.rental AS r2 
+        USING 
+            (inventory_id)
+        JOIN 
+            sakila.payment AS p2 
+        USING 
+            (rental_id)
+        GROUP BY 
+            f2.film_id) AS average_revenue
 
 
 
