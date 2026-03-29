@@ -1,5 +1,8 @@
 -- -- Database: HR_db
--- 1. Write a query to list the number of jobs available in the employees table.
+-
+
+- 1. Write a query to list the number of jobs available in the employees table.
+
 SELECT
     Job_id,
     COUNT(*) AS number_jobs
