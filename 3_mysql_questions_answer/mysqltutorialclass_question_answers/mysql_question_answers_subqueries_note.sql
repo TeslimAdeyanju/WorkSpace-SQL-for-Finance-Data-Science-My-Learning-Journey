@@ -95,7 +95,83 @@ WHERE EXISTS
         WHERE rating IS NOT NULL 
         AND r.customer_id = c.customer_id); 
         
-        
+-- 
+
+
+
+select fm.title, 
+fm.rental_duration, 
+sum(fm.rental_rate * fm.length) as revenue, 
+year(fm.last_update) as Year, pm.amount,
+case 
+when sum(fm.rental_rate * fm.length) <500 then 'Silver'
+when sum(fm.rental_rate * fm.length) BETWEEN 500 and 1000 then 'Gold'
+WHEN sum(fm.rental_rate * fm.length) > 1000 then 'Platinum'
+     else 'check'
+     end as grouping_list
+from film as fm 
+join inventory as iv USING(film_id)
+JOIN rental as rt USING(inventory_id)
+JOIN payment as pm USING(rental_id)
+GROUP by fm.title, fm.rental_duration, year(fm.last_update), pm.amount
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         
         
