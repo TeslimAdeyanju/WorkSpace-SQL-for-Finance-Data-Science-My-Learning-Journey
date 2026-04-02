@@ -1,0 +1,61 @@
+
+-- Uisng the Union set operattor 
+SELECT
+    firstName,
+    lastName
+FROM
+    employees
+UNION
+
+SELECT
+    contactFirstName,
+    contactLastName
+FROM
+    customers; 
+    
+    
+
+
+-- Using concat instead of the first select statement columns 
+SELECT
+    CONCAT(firstName,' ',lastName) as fullname, con
+FROM
+    employees
+UNION 
+SELECT
+    CONCAT(contactFirstName,' ',contactLastName) as fullname
+FROM
+    customers;
+    
+ 
+    
+   
+    
+-- MySQL UNION and ORDER BY
+
+SELECT
+    concat(firstName,' ',lastName) fullname
+FROM
+    employees
+UNION 
+SELECT
+    concat(contactFirstName,' ',contactLastName)
+FROM
+    customers
+ORDER BY fullname;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
