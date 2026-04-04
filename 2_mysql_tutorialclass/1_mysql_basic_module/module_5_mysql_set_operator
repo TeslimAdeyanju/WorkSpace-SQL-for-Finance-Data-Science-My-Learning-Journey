@@ -34,15 +34,18 @@ FROM
 -- MySQL UNION and ORDER BY
 
 SELECT
-    concat(firstName,' ',lastName) fullname
+CONCAT(firstName,' ',lastName) fullname
 FROM
-    employees
-UNION 
+employees
+ 
+UNION
+ 
 SELECT
-    concat(contactFirstName,' ',contactLastName)
+CONCAT(contactFirstName,' ',contactLastName)
 FROM
-    customers
-ORDER BY fullname;
+customers
+ORDER BY 
+fullname;
 
 
 
