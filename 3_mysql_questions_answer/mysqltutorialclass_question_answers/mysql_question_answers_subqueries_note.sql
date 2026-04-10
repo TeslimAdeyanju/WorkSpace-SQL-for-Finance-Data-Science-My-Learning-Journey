@@ -117,6 +117,20 @@ GROUP by fm.title, fm.rental_duration, year(fm.last_update), pm.amount
 
 
 
+-- using the consoto database 
+
+
+   SELECT 
+          concat(c.surname, ' ', c.givenname) AS full_name, 
+          c.vehicle, 
+          s.unitprice, 
+          s.quantity, 
+          round((s.unitprice * s.quantity):: NUMERIC,2) AS revenue, 
+   (SELECT 
+          MAX(unitprice * quantity) FROM sales)
+   from customer as c
+   JOIN   sales AS s USING (customerkey);
+
 
 
 

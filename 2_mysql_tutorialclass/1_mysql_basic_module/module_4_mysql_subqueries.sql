@@ -1,9 +1,9 @@
     /** 3.1  COMPLETE GUIDE: SINGLE-ROW OPERATORS WITH AGGREGATE FUNCTIONS**/ 
-   §
-   /*-- 1. USING > (GREATER THAN) WITH AGGREGATE FUNCTIONS*/
-   /*-- Example 1.1: > with AVG()*/
-   /*-- Business Scenario: "Find all films with a rental rate higher than the average rental rate"*/
    
+   
+    /*-- 1. USING > (GREATER THAN) WITH AGGREGATE FUNCTIONS*/
+   -- Example 1.1: > with AVG()
+   -- Business Scenario: "Find all films with a rental rate higher than the average rental rate
    SELECT
           film_id,
           title,
@@ -39,6 +39,8 @@
                              COUNT(*) AS payment_count
                     FROM     payment
                     GROUP BY customer_id) AS customer_payments)
+   
+   
    /*-- Example 1.3: > with SUM()*/
    /*-- Business Scenario: "Find films that have generated more total revenue than the average film's 
    -- total revenue"*/
@@ -57,20 +59,249 @@
           USING 
                    rental_id
           GROUP BY f2.film_id) AS average_revenue
-   /*-- Example 1.4: > with MIN()*/
-   /*-- Example 1.5: > with COUNT()*/
+   
+   
+    /*-- Example 1.4: > with MIN()*/
+   --Business Scenario: "Find all films longer than the shortest film duration"
+   SELECT 
+          film_id, 
+          title, 
+          LENGTH
+   FROM   film
+   WHERE  LENGTH > 
+          ( SELECT 
+                  MIN(LENGTH)
+          FROM    film ;
+   
+   
+    /*-- Example 1.5: > with COUNT()*/
+   --Business Scenario: "Find actors who have appeared in more films than the average actor"
+   SELECT 
+            a.actor_id,
+            a.first_name,
+            a.last_name,
+            COUNT(fa.film_id) AS film_count
+   FROM     actor as a
+   JOIN     film_actor as fa ON a.actor_id = fa.actor_id
+   GROUP BY a.actor_id,
+            a.first_name,
+            a.last_name
+   HAVING 
+            COUNT(fa.film_id) > 
+            ( SELECT 
+                    AVG(film_count)
+            FROM    ( SELECT 
+                             actor_id,
+                             COUNT(*) AS film_count
+                    FROM     film_actor
+                    GROUP BY actor_id ) AS actor_film_counts );
+                                                                                        
+   
+   
+   
+   
    /*-- 2. Using < (Less Than) with Aggregate Functions*/
-   /*-- Example 2.1: < with AVG()*/
-   /*-- Example 2.2: < with MAX()*/
-   /*-- Example 2.3: < with MIN()*/
-   /*-- Example 2.4: < with COUNT()*/
+   
+    /*-- Example 2.1: < with AVG()*/
+   -- Business Scenario: "Find all budget-friendly films priced below the average rental rate"
+   SELECT 
+          film_id, 
+          title, 
+          rental_rate, 
+          rating
+   FROM   film
+   WHERE  rental_rate < 
+          ( SELECT 
+                  AVG(rental_rate)
+          FROM    film );
+   
+   
+    /*-- Example 2.2: < with MAX()*/
+   --Business Scenario: "Find all films shorter than the longest film"
+   SELECT 
+            film_id,
+            title,
+            LENGTH,
+            (SELECT 
+                    MAX(LENGTH) 
+            FROM    film) AS longest_film_duration
+   FROM     film
+   WHERE    LENGTH < 
+            ( SELECT 
+                    MAX(LENGTH)
+            FROM    film )
+   ORDER BY LENGTH DESC;
+  
+  
+    /*-- Example 2.3: < with MIN()*/
+   -- Business Scenario: "Identify films with rental duration longer than the minimum rental duration (if any exist)
+   SELECT 
+          film_id, 
+          title, 
+          rental_duration
+   FROM   film
+   WHERE  rental_duration >
+          ( SELECT 
+                  MIN(rental_duration)
+          FROM    film );
+  
+   
+    /*-- Example 2.4: < with COUNT()*/
+   -- Business Scenario: "Find categories with fewer films than the average number of films per category
+   SELECT 
+             c.category_id,
+             c.name,
+             COUNT(fc.film_id) AS film_count
+   FROM      category c
+   LEFT JOIN film_category fc ON c.category_id = fc.category_id
+   GROUP BY  c.category_id,
+             c.name
+   HAVING 
+             COUNT(fc.film_id) < 
+             ( SELECT 
+                     AVG(films_per_category)
+             FROM    ( SELECT 
+                              category_id,
+                              COUNT(*) AS films_per_category
+                     FROM     film_category
+                     GROUP BY category_id ) AS category_counts );
+                                                                                                
+   
+   
+   
+   
    /*-- 3. Using = (Equals) with Aggregate Functions*/
+   
    /*-- Example 3.1: = with MAX()*/
-   /*-- Example 3.2: = with MIN()*/
-   /*-- Example 3.3: = with AVG()*/
-   /*-- Example 3.4: = with COUNT()*/
-   /*-- 4. Using >= (Greater Than or Equal To) with Aggregate Functions*/
-   /*-- Example 4.1: >= with AVG()*/
+   --Business Scenario: "Find the most expensive film(s) in the inventory"
+   SELECT 
+          film_id, 
+          title, 
+          rental_rate
+   FROM   film
+   WHERE  rental_rate = 
+          ( SELECT 
+                  MAX(rental_rate)
+          FROM    film );
+
+  
+   
+    /*-- Example 3.2: = with MIN()*/
+   -- Business Scenario: "Find the cheapest film(s) available for rental"
+   SELECT 
+          film_id, 
+          title, 
+          rental_rate, 
+          rating
+   FROM   film
+   WHERE  rental_rate = 
+          ( SELECT 
+                  MIN(rental_rate)
+          FROM    film );
+
+   
+    /*-- Example 3.3: = with AVG()*/
+   -- Business Scenario: "Find customers whose total spending exactly matches the average customer spending
+   SELECT 
+            c.customer_id,
+            c.first_name,
+            c.last_name,
+            SUM(p.amount) AS total_spent,
+            (SELECT 
+                    AVG(customer_total)
+            FROM    (SELECT 
+                             customer_id, 
+                             SUM(amount) AS customer_total
+                    FROM     payment
+                    GROUP BY customer_id) AS totals) AS avg_spending
+   FROM     customer c
+   JOIN     payment p ON c.customer_id = p.customer_id
+   GROUP BY c.customer_id, 
+            c.first_name, 
+            c.last_name
+   HAVING 
+            SUM(p.amount) = 
+            ( SELECT 
+                    AVG(customer_total)
+            FROM    ( SELECT 
+                             customer_id, 
+                             SUM(amount) AS customer_total
+                    FROM     payment
+                    GROUP BY customer_id ) AS customer_totals );
+
+ 
+    /*-- Example 3.4: = with COUNT()*/
+   -- Business Scenario: "Find films that have been rented exactly as many times as the most-rented film
+   SELECT 
+            f.film_id, 
+            f.title,
+            COUNT(r.rental_id) AS rental_count
+   FROM     film f
+   JOIN     inventory i ON f.film_id      = i.film_id
+   JOIN     rental r    ON i.inventory_id = r.inventory_id
+   GROUP BY f.film_id, 
+            f.title
+   HAVING 
+            COUNT(r.rental_id) = 
+            ( SELECT 
+                    MAX(rental_count)
+            FROM    ( SELECT 
+                             f2.film_id,
+                             COUNT(r2.rental_id) AS rental_count
+                    FROM     film AS f2
+                    JOIN     inventory i2 ON f2.film_id      = i2.film_id
+                    JOIN     rental r2    ON i2.inventory_id = r2.inventory_id
+                    GROUP BY f2.film_id ) AS film_rentals );
+
+   
+   
+   
+   
+    /*-- 4. Using >= (Greater Than or Equal To) with Aggregate Functions*/
+   --Business Scenario: "Find films with replacement cost at or above the average"
+   SELECT 
+            film_id, 
+            title, 
+            replacement_cost,
+            (SELECT 
+                    AVG(replacement_cost) 
+            FROM    film) AS avg_cost
+   FROM     film
+   WHERE    replacement_cost >= 
+            ( SELECT 
+                    AVG(replacement_cost)
+            FROM    film )
+   ORDER BY replacement_cost;
+
+   
+      /*-- Example 4.1: >= with AVG()*/
+   -- Business Scenario: "Find actors who have appeared in as many or more films than the most prolific actor"
+   SELECT 
+            a.actor_id,
+            a.first_name,
+            a.last_name,
+            COUNT(fa.film_id) AS film_count
+   FROM     actor a
+   JOIN     film_actor fa ON a.actor_id = fa.actor_id
+   GROUP BY a.actor_id,
+            a.first_name,
+            a.last_name
+   HAVING 
+            COUNT(fa.film_id) >= 
+            ( SELECT 
+                    MAX(film_count)
+            FROM    ( SELECT 
+                             actor_id, 
+                             COUNT(*) AS film_count
+                    FROM     film_actor
+                    GROUP BY actor_id ) AS actor_counts );
+
+   
+   
+   
+   
+   
+   
    /*-- Example 4.2: >= with MAX()*/
    /*-- Example 4.3: >= with MIN()*/
    /*-- Example 4.4: >= with SUM()*/
