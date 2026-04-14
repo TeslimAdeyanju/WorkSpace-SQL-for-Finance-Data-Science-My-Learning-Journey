@@ -60,5 +60,35 @@
    
    
    
+   -- 6. Write a MySQL query to get the department name and number of employees in the department.
+   
+   
+   select DEPARTMENT_NAME, COUNT(*) as dept_count
+   from HR_db.employees
+   join HR_db.departments on employees.DEPARTMENT_ID = departments.DEPARTMENT_ID
+   GROUP by DEPARTMENT_NAME
+   order by dept_count
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
    
    

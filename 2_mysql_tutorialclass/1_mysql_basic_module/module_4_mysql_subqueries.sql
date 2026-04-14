@@ -298,12 +298,50 @@
 
    
    
-   
-   
-   
-   
    /*-- Example 4.2: >= with MAX()*/
+   -- Business Scenario: "Find actors who have appeared in as many or more films than the most prolific actor"
+    SELECT
+            a.actor_id,
+            a.first_name,
+            a.last_name,
+            COUNT(fa.film_id) AS film_count
+   FROM     actor AS a
+   JOIN     sakila.film_actor AS fa ON a.actor_id = fa.actor_id
+   GROUP BY a.actor_id,
+            a.first_name,
+            a.last_name
+   HAVING 
+            COUNT(fa.film_id) >= 
+            ( SELECT 
+                    MAX(film_count)
+            FROM   ( SELECT 
+                             actor_id, 
+                             COUNT(*) AS film_count
+                    FROM     sakila.film_actor
+                    GROUP BY actor_id) AS actor_count)
+   
+   
    /*-- Example 4.3: >= with MIN()*/
+   
+  -- Business Scenario: "Find all films with length at or above the minimum length (basically all films)"
+  
+     SELECT
+          film_id,
+          title,
+          LENGTH
+   FROM   sakila.film
+   WHERE  LENGTH>=
+          ( SELECT
+                  MIN(LENGTH)
+          FROM    film)
+   
+   
+   
+   
+   
+   
+   
+   
    /*-- Example 4.4: >= with SUM()*/
    /*-- 5. Using <= (Less Than or Equal To) with Aggregate Functions*/
    /*-- Example 5.1: <= with AVG()*/
