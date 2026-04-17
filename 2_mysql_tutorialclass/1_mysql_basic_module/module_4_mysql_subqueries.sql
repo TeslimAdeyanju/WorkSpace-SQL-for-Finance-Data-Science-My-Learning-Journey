@@ -333,18 +333,54 @@
    WHERE  LENGTH>=
           ( SELECT
                   MIN(LENGTH)
-          FROM    film)
+          FROM    film);
    
-   
-   
-   
-   
-   
-   
+
    
    /*-- Example 4.4: >= with SUM()*/
+   
+   -- Business Scenario: "Find customers who have spent at least as much as the average customer spending"
+    SELECT
+            c.customer_id,
+            c.first_name,
+            c.last_name,
+            SUM(p.amount) AS total_spend
+   FROM     sakila.customer AS c
+   JOIN     sakila.payment AS p ON p.customer_id = c.customer_id
+   GROUP BY c.customer_id,
+            c.first_name,
+            c.last_name
+   HAVING 
+            SUM(p.amount) >= 
+            ( SELECT
+                    AVG(customer_spending)
+            FROM    ( SELECT
+                             customer_id,
+                             SUM(amount) AS customer_spending
+                    FROM     payment
+                    GROUP BY customer_id) AS spending_total);
+   
+   
    /*-- 5. Using <= (Less Than or Equal To) with Aggregate Functions*/
    /*-- Example 5.1: <= with AVG()*/
+   
+   -- Business Scenario: "Find films with rental duration at or below the average"
+      SELECT
+            film_id,
+            title,
+            rental_duration,
+            (SELECT
+                    AVG(rental_duration)
+            FROM    sakila.film) AS avg_duration
+   FROM     sakila.film
+   WHERE    rental_duration <=
+            (SELECT
+                    AVG(rental_duration)
+            FROM    sakila.film)
+   ORDER BY rental_duration DESC;
+   
+   
+   
    /*-- Example 5.2: <= with MAX()*/
    /*-- Example 5.3: <= with MIN()*/
    /*-- Example 5.4: <= with COUNT()*/
