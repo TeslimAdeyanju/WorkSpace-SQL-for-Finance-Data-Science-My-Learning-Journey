@@ -380,20 +380,209 @@
    ORDER BY rental_duration DESC;
    
    
-   
    /*-- Example 5.2: <= with MAX()*/
+   -- Business Scenario: "Find all films with length at or below the maximum length (all films)"
+   SELECT 
+          film_id, 
+          title, 
+          LENGTH
+   FROM   film
+   WHERE  LENGTH <= 
+          ( SELECT 
+                  MAX(LENGTH)
+          FROM    film );
+   
    /*-- Example 5.3: <= with MIN()*/
+   -- Business Scenario: "Find the shortest film(s) in the inventory"
+   
+    SELECT 
+          film_id, 
+          title, 
+          LENGTH, 
+          (SELECT 
+                  MIN(LENGTH) 
+          FROM    film) AS shortest_length
+   FROM   film
+   WHERE  LENGTH <= 
+          ( SELECT 
+                  MIN(LENGTH)
+          FROM    film);
+   
    /*-- Example 5.4: <= with COUNT()*/
+   -- Business Scenario: "Find stores with rental counts at or below the average rentals per store"
+   SELECT
+         s.store_id,
+         COUNT(r.rental_id) AS rental_count,
+         (SELECT
+               AVG(store_rentals)
+            FROM (SELECT
+                     store_id,
+                     COUNT(*) AS store_rentals
+                  FROM inventory i2
+                  JOIN rental r2 ON i2.inventory_id = r2.inventory_id
+                  GROUP BY
+                     store_id) AS counts) AS avg_rentals
+      FROM store AS s
+      JOIN sakila.inventory AS i ON s.store_id = i.store_id
+      JOIN rental AS r           ON i.inventory_id = r.inventory_id
+      GROUP BY
+         s.store_id
+      HAVING COUNT(r.rental_id) <=
+         (SELECT
+               AVG(store_rentals)
+            FROM ( SELECT
+                     i2.store_id,
+                     COUNT(*) AS store_rentals
+                  FROM inventory AS i2
+                  JOIN rental r2 ON i2.inventory_id = r2.inventory_id
+                  GROUP BY
+                     i2.store_id) AS store_rental_counts);
+   
+   
+   
    /*-- 6. Using <> or != (Not Equal To) with Aggregate Functions*/
    /*-- Example 6.1: <> with AVG()*/
+   -- Business Scenario: "Find films with rental rates different from the average (not exactly average)"
+   SELECT 
+         film_id, 
+         title, 
+         rental_rate,
+         (SELECT 
+               AVG(rental_rate) 
+            FROM film) AS avg_rate
+      FROM film
+      WHERE rental_rate <> 
+         ( SELECT 
+               AVG(rental_rate)
+            FROM film )
+      ORDER BY 
+         rental_rate;
+   
+   
    /*--Example 6.2: <> with MAX()*/
+   -- Business Scenario: "Find all films that are NOT the longest film(s)"
+   SELECT 
+         film_id, 
+         title, 
+         LENGTH
+      FROM film
+      WHERE LENGTH <> 
+         ( SELECT 
+               MAX(LENGTH)
+            FROM film )
+      ORDER BY 
+         LENGTH DESC;
+
+   
    /*-- Example 6.3: <> with MIN()*/
+   -- Business Scenario: "Find all films that are NOT the shortest film(s)"
+   SELECT 
+         film_id, 
+         title, 
+         LENGTH
+      FROM film
+      WHERE LENGTH <> 
+         ( SELECT 
+               MIN(LENGTH)
+            FROM film )
+      ORDER BY 
+         LENGTH;
+
+   
+   
    /*-- Example 6.4: != with COUNT()*/
+   -- Business Scenario: "Find actors whose film count is NOT equal to the average"
+   SELECT 
+         a.actor_id, 
+         a.first_name, 
+         a.last_name,
+         COUNT(fa.film_id) AS film_count,
+         (SELECT 
+               AVG(actor_film_count)
+            FROM (SELECT 
+                     actor_id, 
+                     COUNT(*) AS actor_film_count
+                  FROM film_actor
+                  GROUP BY 
+                     actor_id) AS counts) AS avg_count
+      FROM actor a
+      JOIN film_actor fa ON a.actor_id = fa.actor_id
+      GROUP BY 
+         a.actor_id, 
+         a.first_name, 
+         a.last_name
+      HAVING COUNT(fa.film_id) != 
+         ( SELECT 
+               AVG(actor_film_count)
+            FROM ( SELECT 
+                     actor_id, 
+                     COUNT(*) AS actor_film_count
+                  FROM film_actor
+                  GROUP BY 
+                     actor_id ) AS actor_film_counts );
+
+   
+   
    /*-- 7. Complex Example: Combining Multiple Aggregate Comparisons*/
-   /*--Example 7.1:  "Find films that are above average in price BUT below average in length - premium 
-   -- short films"*/
+   --Example 7.1:  "Find films that are above average in price BUT below average in length - premium short films"
+    SELECT 
+         film_id, 
+         title, 
+         rental_rate, 
+         LENGTH,
+         (SELECT 
+               AVG(rental_rate) 
+            FROM film) AS avg_rate,
+         (SELECT 
+               AVG(LENGTH) 
+            FROM film) AS avg_length
+      FROM film
+      WHERE rental_rate > 
+         ( SELECT 
+               AVG(rental_rate)
+            FROM film )
+      AND LENGTH < 
+         ( SELECT 
+               AVG(LENGTH)
+            FROM film )
+      ORDER BY 
+         rental_rate DESC, 
+         LENGTH;
+
+  
+   
+   
    /*--Example 7.2: "Find the most expensive film in the shortest category"*/
+   -- : "Find the most expensive film in the shortest category"
+   SELECT 
+         f.film_id, 
+         f.title, 
+         f.rental_rate, 
+         f.length, 
+         c.name AS category
+      FROM film f
+      JOIN film_category fc ON f.film_id = fc.film_id
+      JOIN category c       ON fc.category_id = c.category_id
+      WHERE f.length = 
+         ( SELECT 
+               MIN(LENGTH)
+            FROM film )
+      AND f.rental_rate = 
+         ( SELECT 
+               MAX(rental_rate)
+            FROM film
+            WHERE LENGTH = 
+               ( SELECT 
+                     MIN(LENGTH)
+                  FROM film ) );
+
+   
+   
+   
+   
    /*--**3.2  COMPLETE GUIDE: MULTIPLE-ROW OPERATORS (IN, ANY, ALL)/***/
+   
+   
    /*--Business Scenario: "Find all customers who have rented films from the 'Action' category"*/
    SELECT 
           customer_id, 
@@ -429,6 +618,9 @@
             a.first_name,
             a.last_name
    ORDER BY films_with_customer5 DESC;
+   
+   
+   
    /*-- Business Scenario: "Find all films that have NEVER been rented"*/
    SELECT 
             f.film_id, 
@@ -459,6 +651,8 @@
           JOIN    film_category fc ON i.film_id      = fc.film_id
           JOIN    category c       ON fc.category_id = c.category_id
           WHERE   c.name                             = 'Horror' );
+   
+   
    /*-- Business Scenario: "Find customers who have rented films that cost exactly one of the standard 
    -- price points (0.99, 2.99, 4.99)"*/
    SELECT
